@@ -1,3 +1,6 @@
+--!strict
+--!optimize 2
+
 return table.freeze({
 	Tags = {
 		CAR_TAG = "Car",
