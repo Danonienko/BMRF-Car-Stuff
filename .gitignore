@@ -1,6 +1,8 @@
 # Project place file
 /BMRF Car Stuff.rbxlx
 Packages
+wally.lock
+sourcemap.json
 
 # Roblox Studio lock files
 /*.rbxlx.lock
