@@ -8,4 +8,7 @@ return table.freeze({
 	Attributes = {
 		PLAYER_IN_CAR = "PlayerInCar",
 	},
+	Actions = {
+		EXIT_ACTION = "Exit",
+	},
 })
