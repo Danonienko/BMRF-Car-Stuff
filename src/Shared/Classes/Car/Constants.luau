@@ -11,4 +11,7 @@ return table.freeze({
 	Actions = {
 		EXIT_ACTION = "Exit",
 	},
+	KeyMap = {
+		EXIT_KEY = Enum.KeyCode.Z
+	}
 })

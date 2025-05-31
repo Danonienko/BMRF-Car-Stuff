@@ -7,7 +7,7 @@ local t = require(ReplicatedStorage.Packages.t)
 local Car_d = require(ReplicatedStorage.Types["Car.d"])
 
 local IsCarSeatInterface = t.strictInterface({
-	Seat = t.instanceIsA("Seat"),
+	Seat = t.union(t.instanceIsA("Seat"), t.instanceIsA("VehicleSeat")),
 	Prompt = t.instanceIsA("ProximityPrompt"),
 	Attachment = t.instanceIsA("Attachment"),
 	IsPlayerSitting = t.boolean,
