@@ -26,7 +26,8 @@ export type CarSeat = {
 	Prompt: ProximityPrompt,
 	Attachment: Attachment,
 	--- If true, the local player (you) is currently sitting in the seat
-	Occupied: boolean,
+	IsPlayerSitting: boolean,
+	PlayerHumanoid: Humanoid?,
 }
 
 return nil

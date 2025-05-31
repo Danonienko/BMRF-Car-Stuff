@@ -36,10 +36,10 @@ return function(carModel: Model): { Car_d.CarSeat }
 		carSeat.Seat = descendant :: Seat
 		carSeat.Prompt = seatPrompt
 		carSeat.Attachment = seatAttachment
-		carSeat.Occupied = false
+		carSeat.IsPlayerSitting = false
 
 		table.insert(carSeats, carSeat)
-		
+
 		print(`Initialized seat '{descendant}'`)
 	end
 
