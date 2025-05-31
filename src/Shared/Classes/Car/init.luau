@@ -6,12 +6,13 @@
 -- == SERVICES & REQUIRES == --
 -------------------------------
 
+local ContextActionService = game:GetService("ContextActionService")
+local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Constants = require(script.Constants)
-local GetOutsidePosition = require(script.Scripts.GetOutsidePosition)
-local GetSeatPrompts = require(script.Scripts.GetSeatPrompts)
-local GetSeats = require(script.Scripts.GetSeats)
+local GetCarSeats = require(script.Scripts.GetCarSeats)
 local Trove = require(ReplicatedStorage.Packages.Trove)
 local Car_d = require(ReplicatedStorage.Types["Car.d"])
 local Car = {}
@@ -34,57 +35,13 @@ local private = {}
 -- == PRIVATE FUNCTIONS == --
 -------------------------------
 
-local function _HandlePromptTriggered(self: Car_d.Car, player: Player, seat: Seat): ()
-	local character = player.Character
+local function _Initialize(self: Car_d.Car): ()
+	for _, carSeat in self.CarSeats do
+		private[self].Trove:Connect(carSeat.Prompt.Triggered, function(player: Player): ()
+			self:Sit(player, carSeat)
+		end)
 
-	if not character then
-		return
-	end
-
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-
-	if not humanoid then
-		return
-	end
-
-	seat:Sit(humanoid)
-
-	private[self].Trove:Add(seat:GetPropertyChangedSignal("Occupant"):Once(function(): ()
-		local occupant = seat.Occupant
-
-		if not occupant then
-			return
-		end
-
-		if occupant ~= humanoid then
-			return
-		end
-
-		self.Model:SetAttribute(Constants.Attributes.PLAYER_IN_CAR, true)
-
-		private[self].Trove:Add(seat:GetPropertyChangedSignal("Occupant"):Once(function(): ()
-			if not seat.Occupant then
-				local rootPart = humanoid.RootPart
-
-				if not rootPart then
-					return
-				end
-
-				rootPart:PivotTo(GetOutsidePosition(seat))
-
-				self.Model:SetAttribute(Constants.Attributes.PLAYER_IN_CAR, false)
-			end
-		end))
-	end))
-end
-
-local function _HandlePlayerInCarAttributeChanged(self: Car_d.Car): ()
-	for _, prompt in self.Seats do
-		if self:IsPlayerInCar() then
-			prompt.Enabled = false
-		else
-			prompt.Enabled = true
-		end
+		print(`Connected prompt trigger for '{carSeat.Seat}' seat`)
 	end
 end
 
@@ -111,21 +68,12 @@ function Car.new(model: Model): Car_d.Car
 
 	private[self] = {
 		Trove = Trove.new(),
-		Initialized = false,
 	}
 
 	self.Model = model
-	self.Seats = GetSeatPrompts(GetSeats(model))
+	self.CarSeats = GetCarSeats(model)
 
-	for seat, prompt in self.Seats do
-		private[self].Trove:Connect(prompt.Triggered, function(player: Player)
-			_HandlePromptTriggered(self, player, seat)
-		end)
-	end
-
-	private[self].Trove:Connect(model:GetAttributeChangedSignal(Constants.Attributes.PLAYER_IN_CAR), function()
-		_HandlePlayerInCarAttributeChanged(self)
-	end)
+	_Initialize(self)
 
 	carCollection[model] = self
 
@@ -138,14 +86,78 @@ end
 -- == PUBLIC FUNCTIONS == --
 -------------------------------
 
-function CarMeta:IsPlayerInCar(): boolean
-	local attribute = self.Model:GetAttribute(Constants.Attributes.PLAYER_IN_CAR)
+function CarMeta:Sit(player: Player, carSeat: Car_d.CarSeat): ()
+	-- Check if the player who triggered prompt is you
+	if player ~= Players.LocalPlayer then
+		return
+	end
 
-	return typeof(attribute) == "boolean" and attribute or false
+	-- Sit!
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	if not humanoid then
+		return
+	end
+
+	ProximityPromptService.Enabled = false
+
+	humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+	carSeat.Seat:Sit(humanoid)
+	carSeat.Occupied = true
+
+	ContextActionService:BindAction(Constants.Actions.EXIT_ACTION, function(_, inputState: Enum.UserInputState)
+		if inputState == Enum.UserInputState.Begin then
+			self:Exit()
+		end
+
+		return Enum.ContextActionResult.Sink
+	end, true, Enum.KeyCode.E)
+end
+
+function CarMeta:Exit(): ()
+	-- Get the seat that local player is sitting on
+	local occupiedCarSeat: Car_d.CarSeat?
+
+	for _, carSeat in self.CarSeats do
+		if not carSeat.Occupied then
+			continue
+		end
+
+		occupiedCarSeat = carSeat
+	end
+
+	if not occupiedCarSeat then
+		return
+	end
+
+	local humanoid = occupiedCarSeat.Seat.Occupant
+	local rootPart = humanoid and humanoid.RootPart
+
+	if not rootPart then
+		return
+	end
+
+	local seatWeld = occupiedCarSeat.Seat:FindFirstChild("SeatWeld")
+
+	if seatWeld then
+		seatWeld:Destroy()
+	end
+
+	rootPart:PivotTo(occupiedCarSeat.Attachment.WorldCFrame)
+
+	occupiedCarSeat.Occupied = false
+	(humanoid :: Humanoid):SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+	ContextActionService:UnbindAction(Constants.Actions.EXIT_ACTION)
+	ProximityPromptService.Enabled = true
 end
 
 function CarMeta:Destroy(): ()
 	private[self].Trove:Destroy()
+
+	for _, actionName: string in pairs(Constants.Actions) do
+		ContextActionService:UnbindAction(actionName)
+	end
 
 	table.clear(private[self])
 	table.clear(self :: any)

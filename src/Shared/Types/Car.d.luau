@@ -4,7 +4,7 @@
 export type Car = typeof(setmetatable(
 	{} :: {
 		Model: Model,
-		Seats: { [Seat]: ProximityPrompt },
+		CarSeats: { CarSeat },
 	},
 	{} :: ICar
 ))
@@ -13,9 +13,20 @@ export type ICar = {
 	__index: ICar,
 	__tostring: () -> string,
 
-	IsPlayerInCar: (self: Car) -> boolean,
+	Sit: (self: Car, player: Player, carSeat: CarSeat) -> (),
+	Exit: (self: Car) -> (),
+	ShowPrompts: (self: Car) -> (),
+	HidePrompts: (self: Car) -> (),
 
 	Destroy: (self: Car) -> (),
+}
+
+export type CarSeat = {
+	Seat: Seat,
+	Prompt: ProximityPrompt,
+	Attachment: Attachment,
+	--- If true, the local player (you) is currently sitting in the seat
+	Occupied: boolean,
 }
 
 return nil
