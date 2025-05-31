@@ -38,6 +38,28 @@ local private = {}
 -- == PRIVATE FUNCTIONS == --
 -------------------------------
 
+local function _IsExitObstructed(origin: Vector3, destination: Vector3, excludeList: { Instance }): boolean
+	local direction = (destination - origin).Unit
+	local distance = (origin + destination).Magnitude
+
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.IgnoreWater = true
+	params:AddToFilter(excludeList)
+
+	local raycastResult = workspace:Raycast(origin, direction * distance, params)
+
+	if not raycastResult then
+		return false
+	end
+
+	if raycastResult.Instance then
+		return true
+	end
+
+	return false
+end
+
 local function _HandleOccupantChanged(self: Car_d.Car, carSeat: Car_d.CarSeat): ()
 	local occupant: Humanoid? = carSeat.Seat.Occupant
 
@@ -70,7 +92,17 @@ local function _HandleOccupantChanged(self: Car_d.Car, carSeat: Car_d.CarSeat): 
 			return
 		end
 
-		rootPart:PivotTo(carSeat.Attachment.WorldCFrame)
+		if
+			_IsExitObstructed(
+				carSeat.Seat.Position,
+				carSeat.Attachment.WorldPosition,
+				{ self.Model, humanoid.Parent :: any }
+			)
+		then
+			rootPart:PivotTo(rootPart:GetPivot() * CFrame.new(0, 10, 0))
+		else
+			rootPart:PivotTo(carSeat.Attachment.WorldCFrame)
+		end
 
 		-- Enable jumping, enable prompts, set player sitting flag to false and unbind exit action
 		humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
