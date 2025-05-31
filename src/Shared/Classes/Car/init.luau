@@ -40,7 +40,7 @@ local private = {}
 
 local function _IsExitObstructed(origin: Vector3, destination: Vector3, excludeList: { Instance }): boolean
 	local direction = (destination - origin).Unit
-	local distance = (origin + destination).Magnitude
+	local distance = (destination - origin).Magnitude
 
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
@@ -76,7 +76,7 @@ local function _HandleOccupantChanged(self: Car_d.Car, carSeat: Car_d.CarSeat): 
 			end
 
 			return Enum.ContextActionResult.Sink
-		end, true, Enum.KeyCode.E)
+		end, true, Constants.KeyMap.EXIT_KEY)
 	else
 		-- Get previously sitting humanoid
 		local humanoid: Humanoid? = carSeat.PlayerHumanoid
