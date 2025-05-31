@@ -6,7 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local t = require(ReplicatedStorage.Packages.t)
 
 return function(seat: Seat, humanoid: Humanoid): boolean
-	if not t.instanceIsA("Seat")(seat) then
+	if not (t.instanceIsA("Seat")(seat) or t.instanceIsA("VehicleSeat")(seat)) then
 		return false
 	end
 
