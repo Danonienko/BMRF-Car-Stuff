@@ -33,7 +33,7 @@ function PromptDesigner.new(prompt: ProximityPrompt): PromptDesigner_d.PromptDes
 	}
 
 	self.Prompt = prompt
-	self.Design = private[self].Trove:Add(GetDesign(prompt))
+	self.Design = GetDesign(prompt)
 
 	self.Design.Parent = Players.LocalPlayer.PlayerGui
 
@@ -67,10 +67,9 @@ end
 
 function DesignerMeta:Destroy(): ()
 	promptCollection[self.Prompt] = nil
-
 	private[self].Trove:Destroy()
 
-	table.clear(private[self])
+	private[self] = nil
 	table.clear(self :: any)
 end
 
