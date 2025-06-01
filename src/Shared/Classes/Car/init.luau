@@ -206,13 +206,10 @@ function CarMeta:Exit(): ()
 end
 
 function CarMeta:Destroy(): ()
+	carCollection[self.Model] = nil
 	private[self].Trove:Destroy()
 
-	for _, actionName: string in pairs(Constants.Actions) do
-		ContextActionService:UnbindAction(actionName)
-	end
-
-	table.clear(private[self])
+	private[self] = nil
 	table.clear(self :: any)
 end
 
