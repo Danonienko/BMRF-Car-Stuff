@@ -11,13 +11,15 @@ local Car_d = require(ReplicatedStorage.Types["Car.d"])
 
 local CarRemotes = Remotes.Server:GetNamespace("Car");
 
-(CarRemotes:Get("Sit") :: any):Connect(function(player: Player, seat: Seat, humanoid: Humanoid): ()
-	if not ValidateSitArgs(seat, humanoid) then
+(CarRemotes:Get("Sit") :: any):Connect(function(player: Player, carSeat: Car_d.CarSeat, humanoid: Humanoid): ()
+	if not ValidateSitArgs(carSeat, humanoid) then
 		warn(`Invalid arguments received from player '{player}'`)
 		return
 	end
 
-	seat:Sit(humanoid)
+	carSeat.Seat:Sit(humanoid)
+
+	carSeat.Prompt.Enabled = false
 end);
 
 (CarRemotes:Get("Exit") :: any):Connect(function(player: Player, carSeat: Car_d.CarSeat): ()
@@ -39,6 +41,8 @@ end);
 	if seatWeld then
 		seatWeld:Destroy()
 	end
+
+	carSeat.Prompt.Enabled = true
 end)
 
 return {}

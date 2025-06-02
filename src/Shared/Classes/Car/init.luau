@@ -77,9 +77,9 @@ local function _HandleOccupantChanged(self: Car_d.Car, carSeat: Car_d.CarSeat): 
 
 		-- Disable jumping, disable prompts, set player sitting flag to true and bind exit action
 		occupant:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
-		ProximityPromptService.Enabled = false
 		carSeat.IsPlayerSitting = true
 		carSeat.PlayerHumanoid = occupant
+		ProximityPromptService.Enabled = false
 
 		ContextActionService:BindAction(Constants.Actions.EXIT_ACTION, function(_, inputState: Enum.UserInputState)
 			if inputState == Enum.UserInputState.Begin then
@@ -122,9 +122,9 @@ local function _HandleOccupantChanged(self: Car_d.Car, carSeat: Car_d.CarSeat): 
 
 		-- Enable jumping, enable prompts, set player sitting flag to false and unbind exit action
 		humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
-		ProximityPromptService.Enabled = true
 		carSeat.IsPlayerSitting = false
 		carSeat.PlayerHumanoid = nil
+		ProximityPromptService.Enabled = true
 
 		ContextActionService:UnbindAction(Constants.Actions.EXIT_ACTION)
 	end
@@ -198,7 +198,7 @@ function CarMeta:Sit(player: Player, carSeat: Car_d.CarSeat): ()
 	end
 
 	-- Fire the `Sit` remote
-	(CarRemotes:Get("Sit") :: any):SendToServer(carSeat.Seat, humanoid)
+	(CarRemotes:Get("Sit") :: any):SendToServer(carSeat, humanoid)
 end
 
 function CarMeta:Exit(): ()
@@ -219,6 +219,18 @@ function CarMeta:Exit(): ()
 
 	-- Fire `Exit` remote
 	(CarRemotes:Get("Exit") :: any):SendToServer(occupiedCarSeat)
+end
+
+function CarMeta:ShowPrompts(): ()
+	for _, carSeat in self.CarSeats do
+		carSeat.Prompt.Enabled = true
+	end
+end
+
+function CarMeta:HidePrompts(): ()
+	for _, carSeat in self.CarSeats do
+		carSeat.Prompt.Enabled = false
+	end
 end
 
 function CarMeta:Destroy(): ()
