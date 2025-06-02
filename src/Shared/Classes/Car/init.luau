@@ -62,8 +62,19 @@ end
 
 local function _HandleOccupantChanged(self: Car_d.Car, carSeat: Car_d.CarSeat): ()
 	local occupant: Humanoid? = carSeat.Seat.Occupant
+	local character = Players.LocalPlayer.Character
+	local playerHumanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	if not playerHumanoid then
+		return
+	end
 
 	if occupant then
+		-- Check that the occupant is your humanoid
+		if occupant ~= playerHumanoid then
+			return
+		end
+
 		-- Disable jumping, disable prompts, set player sitting flag to true and bind exit action
 		occupant:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
 		ProximityPromptService.Enabled = false
@@ -83,6 +94,11 @@ local function _HandleOccupantChanged(self: Car_d.Car, carSeat: Car_d.CarSeat): 
 
 		-- No humanoid, cannot do anything
 		if not humanoid then
+			return
+		end
+
+		-- Check that the humanoid is your humanoid
+		if humanoid ~= playerHumanoid then
 			return
 		end
 
