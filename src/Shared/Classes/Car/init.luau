@@ -120,6 +120,8 @@ local function _HandleOccupantChanged(self: Car_d.Car, carSeat: Car_d.CarSeat): 
 			rootPart:PivotTo(carSeat.Attachment.WorldCFrame)
 		end
 
+		self:Exit()
+
 		-- Enable jumping, enable prompts, set player sitting flag to false and unbind exit action
 		humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
 		carSeat.IsPlayerSitting = false
